@@ -19,6 +19,7 @@ struct Account {
     identifier: String,
     name: String,
     email: String,
+    ssh_key: String,
     gpg_key: String,
     gh_auth_token: Option<String>,
 }
@@ -109,6 +110,7 @@ fn load_account(parent_dir: &Path, account: &str, service: &str) -> Result<Accou
             identifier: format!("{}/{}", service, account),
             name: "".to_string(),
             email: "".to_string(),
+            ssh_key: "".to_string(),
             gpg_key: "".to_string(),
             gh_auth_token: None,
         };
@@ -122,6 +124,7 @@ fn load_account(parent_dir: &Path, account: &str, service: &str) -> Result<Accou
                     match key {
                         "name" => account_details.name = value.to_string(),
                         "email" => account_details.email = value.to_string(),
+                        "ssh_key" => account_details.ssh_key = value.to_string(),
                         "gpg_key" => account_details.gpg_key = value.to_string(),
                         "gh_auth_token" => account_details.gh_auth_token = Some(value.to_string()),
                         _ => println!("Ignoring unknown key: {} in {}", key, path.display())
@@ -139,13 +142,14 @@ fn switch_account(parent_dir: &Path, account: Account, is_gh_authed: bool) {
     if let Some(user_home) = get_environment_variable() {
         let ssh_dir = format!("{}/.ssh/", user_home);
         let ssh_path = Path::new(ssh_dir.as_str());
-        if !ssh_path.exists() {
-            fs::create_dir_all(ssh_path).expect("TODO: panic message");
+        if ssh_path.exists() {
+            fs::remove_dir_all(ssh_path).expect("TODO: panic message");
         }
-        if let Err(reason) = fs::copy(account.get_path("id_ed25519"), format!("{}/.ssh/{}", user_home, "id_ed25519")) {
+        fs::create_dir_all(ssh_path).expect("TODO: panic message");
+        if let Err(reason) = fs::copy(account.get_path(account.ssh_key.as_str()), format!("{}/.ssh/{}", user_home, account.ssh_key)) {
             println!("Failed to copy private ssh key: {}", reason);
         };
-        if let Err(reason) = fs::copy(account.get_path("id_ed25519.pub"), format!("{}/.ssh/{}", user_home, "id_ed25519.pub")) {
+        if let Err(reason) = fs::copy(account.get_path(format!("{}.pub", account.ssh_key).as_str()), format!("{}/.ssh/{}.pub", user_home, account.ssh_key)) {
             println!("Failed to copy public ssh key: {}", reason);
         };
         if is_gh_authed {
