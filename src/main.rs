@@ -68,7 +68,7 @@ fn main() {
             return;
         };
     };
-    println!("Cannot find executable path."); 
+    println!("Cannot find executable path.");
 }
 
 fn load_current_account(parent_dir: &Path) -> Option<CurrentAccount> {
@@ -80,7 +80,7 @@ fn load_current_account(parent_dir: &Path) -> Option<CurrentAccount> {
             is_gh_authed: false,
         };
         {
-            let file = File::open(<PathBuf as AsRef<Path>>::as_ref(path.borrow())).expect("");
+            let file = File::open(<Path as AsRef<Path>>::as_ref(path.borrow())).expect("");
             let reader = BufReader::new(file);
             for line in reader.lines() {
                 let line = line.unwrap();
@@ -115,7 +115,7 @@ fn load_account(parent_dir: &Path, account: &str, service: &str) -> Result<Accou
             gh_auth_token: None,
         };
         {
-            let file = File::open(<PathBuf as AsRef<Path>>::as_ref(path.borrow())).expect("");
+            let file = File::open(<Path as AsRef<Path>>::as_ref(path.borrow())).expect("");
             let reader = BufReader::new(file);
             for line in reader.lines() {
                 let line = line.unwrap();
